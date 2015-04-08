@@ -74,74 +74,6 @@ function populateCollection(col, term, entry) {
 // Generate all queries with lower case words so we can exercise the caseSensitive switch
 // ============
 
-// Single-word search
-// Create an oplist and use it to create the test case
-oplist=[];
-for (var i=0; i<numQuery; i++) {
-    var c = Math.floor(Math.random()*(dictSize-wordLength));
-    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: false }}});
-}
-
-tests.push( { name: "Text.FindSingle",
-            tags: ['query','daily','weekly','monthly'],
-            pre: function(collection) {
-	    populateCollection(collection, 5, dictSize);
-	},
-	    ops: oplist
-	    });
-
-// Single-word search, case-sensitive
-// Create an oplist and use it to create the test case
-oplist=[];
-for (var i=0; i<numQuery; i++) {
-    var c = Math.floor(Math.random()*(dictSize-wordLength));
-    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: true }}});
-}
-
-tests.push( { name: "Text.FindSingleCaseSensitive",
-            tags: ['query','daily','weekly','monthly'],
-            pre: function(collection) {
-	    populateCollection(collection, 5, dictSize);
-	},
-	    ops: oplist
-	    });
-
-
-
-// Three-word search (or)
-// Create an oplist and use it to create the test case
-oplist=[];
-for (var i=0; i<numQuery; i++) {
-    var c = Math.floor(Math.random()*(dictSize-wordLength));
-    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,3), $caseSensitive: false }},});
-}
-
-tests.push( { name: "Text.FindThreeWords",
-            tags: ['query','daily','weekly','monthly'],
-            pre: function(collection) {
-	    populateCollection(collection, 5, dictSize);
-        },
-	    ops: oplist
-	    });
-
-// Three-word search (or), case sensitive
-// Create an oplist and use it to create the test case
-oplist=[];
-for (var i=0; i<numQuery; i++) {
-    var c = Math.floor(Math.random()*(dictSize-wordLength));
-    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,3), $caseSensitive: true }},});
-}
-
-tests.push( { name: "Text.FindThreeWordsCaseSensitive",
-            tags: ['query','daily','weekly','monthly'],
-            pre: function(collection) {
-	    populateCollection(collection, 5, dictSize);
-        },
-	    ops: oplist
-	    });
-
-
-
 // Three-word phrase search
 // Create an oplist and use it to create the test case
 // Be careful with the escape character "\"
@@ -161,6 +93,7 @@ tests.push( { name: "Text.FindPhrase",
 	    ops: oplist
 	    });
 
+
 // Three-word phrase search, case-sensitive
 // Create an oplist and use it to create the test case
 // Be careful with the escape character "\"
@@ -179,5 +112,4 @@ tests.push( { name: "Text.FindPhraseCaseSensitive",
         },
 	    ops: oplist
 	    });
-
 

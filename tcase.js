@@ -7,8 +7,11 @@ if ( typeof(tests) != "object" ) {
 //           we also use this as the number of documents in a collection but that can be changed
 // wordLength: length of the "words"; all words are the same length currently but it can be changed
 // wordDistance: distance between "words" in a multi-word phrase
-language = "english"; 
-const dictSize = 4800;
+// A document is inserted into the database with a "phrase" that consists of numTerm "words" that
+// are wordDistance apart from each other in the dictionary. Each word is wordLength long. By doing
+// this, we can be sure that the "phrase queries" can have an exact match.
+var language = "english"; 
+const dictSize = 2400;      // total doc count is 4800 to match other mongo-perf tests
 const wordLength = 5;
 const wordDistance = 100;
 const numTerm = 5;
@@ -20,41 +23,33 @@ const numQuery = 50;
 // Some Helper functions that are used to create the dictionary and phrases of fake words for the text index
 // ============
 // The dictionary is just a long random string. By picking fixed-sized substrings from it, we have our "words"
-enPossible = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01";
-//possible = enPoissible;
-possible = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01";
+var enPossible = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1";
+var possible = enPossible;
 
-dictionary = "";
+var dictionary = "";
 for (var i = 0; i<dictSize; i++) 
     dictionary += possible.charAt(Math.floor(Math.random()*possible.length));
 
 function generatePhrase(pos, term) {
     buf="";
     for (var i=0; i<term; i++) {
-	// Adding a stop word for every 3 fake words; can be modified to increase or lower the frequency
-	if ( i%3==1) {
-	    buf=buf.concat("the ")
-		}
-	else {
-	    var p = (pos + i*wordDistance) % (dictSize - wordLength);
-	    buf= buf.concat(dictionary.substring(p, p+wordLength), " ");
-	}
+        // Adding a stop word for every 3 fake words; can be modified to increase or lower the frequency                                                                    
+        if ( i%3==1) {
+            buf = buf.concat("the")
+                }
+        else {
+            var p = (pos + i*wordDistance) % (dictSize - wordLength);
+            buf = buf.concat(dictionary.substring(p, p+wordLength));
+        }
+        if (i<term) {
+            buf = buf.concat(" ");
+        }
     }
     return buf;
 }
 
 function generatePhraseLowerCase(pos, term) {
-    buf="";
-    for (var i=0; i<term; i++) {
-	// Adding a stop word for every 3 fake words; can be modified to increase or lower the frequency
-	if ( i%3==1) {
-	    buf=buf.concat("the ")
-		}
-	else {
-	    var p = (pos + i*wordDistance) % (dictSize - wordLength);
-	    buf= buf.concat(dictionary.substring(p, p+wordLength), " ");
-	}
-    }
+    var buf = generatePhrase(pos, term);
     return buf.toLowerCase();
 }
 
@@ -66,6 +61,7 @@ function populateCollection(col, term, entry) {
         col.insert({ x: generatePhrase(i, term) });
         col.insert({ x: generatePhraseLowerCase(i, term) });
     }
+    col.getDB().getLastError();
 }
 
 
@@ -73,6 +69,82 @@ function populateCollection(col, term, entry) {
 // ============
 // Generate all queries with lower case words so we can exercise the caseSensitive switch
 // ============
+
+// Helper function to create oplist for single-word search
+function oplistSingleWord(caseSensitive) {
+    var oplist=[];
+    for (var i=0; i<numQuery; i++) {
+	var c = Math.floor(Math.random()*(dictSize-wordLength));
+	if (caseSensitive) 
+	    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: true }}});
+	else
+	    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: false }}});
+    }
+    return oplist;
+}
+
+
+// Single-word search, case-insensitive
+tests.push( { name: "Text.FindSingle",
+            tags: ['query','daily','weekly','monthly'],
+            pre: function(collection) {
+	    populateCollection(collection, numTerm, dictSize);
+	},
+	      ops: oplistSingleWord(false)
+	    });
+
+// Single-word search, case-sensitive
+// Create an oplist and use it to create the test case
+tests.push( { name: "Text.FindSingleCaseSensitive",
+            tags: ['query','daily','weekly','monthly'],
+            pre: function(collection) {
+	    populateCollection(collection, numTerm, dictSize);
+	},
+	      ops: oplistSingleWord(true)
+	    });
+
+
+
+// Three-word search (or)
+// Create an oplist and use it to create the test case
+oplist=[];
+for (var i=0; i<numQuery; i++) {
+    var p = "";
+    for (var j=0; j<3; j++) {
+        var c = Math.floor(Math.random()*(dictSize-wordLength));
+        p = p.concat(generatePhraseLowerCase(c,1), " ");
+    }
+    oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: false }}});
+}
+
+tests.push( { name: "Text.FindThreeWords",
+            tags: ['query','daily','weekly','monthly'],
+            pre: function(collection) {
+            populateCollection(collection, numTerm, dictSize);
+        },
+            ops: oplist
+            });
+
+// Three-word search (or), case sensitive
+// Create an oplist and use it to create the test case
+oplist=[];
+for (var i=0; i<numQuery; i++) {
+    var p = "";
+    for (var j=0; j<3; j++) {
+        var c = Math.floor(Math.random()*(dictSize-wordLength));
+        p = p.concat(generatePhraseLowerCase(c,1), " ");
+    }
+    oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: true }}});
+}
+
+tests.push( { name: "Text.FindThreeWords",
+            tags: ['query','daily','weekly','monthly'],
+            pre: function(collection) {
+            populateCollection(collection, numTerm, dictSize);
+        },
+            ops: oplist
+            });
+
 
 // Three-word phrase search
 // Create an oplist and use it to create the test case
@@ -82,7 +154,7 @@ for (var i=0; i<numQuery; i++) {
     var c = Math.floor(Math.random()*(dictSize-wordLength));
     var p = "\"";
     p = p.concat(generatePhraseLowerCase(c, numTerm), "\"");
-    oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: false }},});
+    oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: false }}});
 }
 
 tests.push( { name: "Text.FindPhrase",
@@ -93,7 +165,6 @@ tests.push( { name: "Text.FindPhrase",
 	    ops: oplist
 	    });
 
-
 // Three-word phrase search, case-sensitive
 // Create an oplist and use it to create the test case
 // Be careful with the escape character "\"
@@ -102,7 +173,7 @@ for (var i=0; i<numQuery; i++) {
     var c = Math.floor(Math.random()*(dictSize-wordLength));
     var p = "\"";
     p = p.concat(generatePhraseLowerCase(c, numTerm), "\"");
-    oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: true }},});
+    oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: true }}});
 }
 
 tests.push( { name: "Text.FindPhraseCaseSensitive",
@@ -112,4 +183,5 @@ tests.push( { name: "Text.FindPhraseCaseSensitive",
         },
 	    ops: oplist
 	    });
+
 

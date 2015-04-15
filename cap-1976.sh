@@ -22,7 +22,7 @@ mkdir -p /mnt/cap-1976/data/db
 
 numactl --physcpubind=0-23 --interleave=all ~/mongo/bin/mongod --dbpath /mnt/cap-1976/data/db --logpath=/mnt/cap-1976/data/cap-1976.log --storageEngine wiredTiger --syncdelay 57600 --fork
 
-numactl --physcpubind=24-31 --interleave=all python ~/mongo-perf/benchrun.py -f ~/scripts/text_index.js --writeCmd true --nodyno --mongo-repo-path /mnt/mongo-master -s ~/mongo/bin/mongo -l cap-1442-single -t 1 4 8 16 32 64 96 128 --testFilter "['sanity','daily']" 
+numactl --physcpubind=24-31 --interleave=all python ~/mongo-perf/benchrun.py -f ~/scripts/tcase.js --writeCmd true --nodyno --mongo-repo-path /mnt/mongo-master -s ~/mongo/bin/mongo -l cap-1442-single -t 2 --testFilter "['sanity','daily']" --trialTime 1
 
 
 

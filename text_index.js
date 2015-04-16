@@ -7,8 +7,11 @@ if ( typeof(tests) != "object" ) {
 //           we also use this as the number of documents in a collection but that can be changed
 // wordLength: length of the "words"; all words are the same length currently but it can be changed
 // wordDistance: distance between "words" in a multi-word phrase
+// A document is inserted into the database with a "phrase" that consists of numTerm "words" that
+// are wordDistance apart from each other in the dictionary. Each word is wordLength long. By doing
+// this, we can be sure that the "phrase queries" can have an exact match.
 var language = "english"; 
-const dictSize = 4800;
+const dictSize = 2400;      // total doc count is 4800 to match other mongo-perf tests
 const wordLength = 5;
 const wordDistance = 100;
 const numTerm = 5;
@@ -67,20 +70,27 @@ function populateCollection(col, term, entry) {
 // Generate all queries with lower case words so we can exercise the caseSensitive switch
 // ============
 
-// Single-word search
-// Create an oplist and use it to create the test case
-oplist=[];
-for (var i=0; i<numQuery; i++) {
-    var c = Math.floor(Math.random()*(dictSize-wordLength));
-    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: false }}});
+// Helper function to create oplist for single-word search
+function oplistSingleWord(caseSensitive) {
+    var oplist=[];
+    for (var i=0; i<numQuery; i++) {
+	var c = Math.floor(Math.random()*(dictSize-wordLength));
+	if (caseSensitive) 
+	    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: true }}});
+	else
+	    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: false }}});
+    }
+    return oplist;
 }
 
+
+// Case-sensitive single-word search
 tests.push( { name: "Text.FindSingle",
             tags: ['query','daily','weekly','monthly'],
             pre: function(collection) {
 	    populateCollection(collection, numTerm, dictSize);
 	},
-	    ops: oplist
+	      ops: oplistSingleWord(false)
 	    });
 
 // Single-word search, case-sensitive

@@ -75,10 +75,7 @@ function oplistSingleWord(caseSensitive) {
     var oplist=[];
     for (var i=0; i<numQuery; i++) {
 	var c = Math.floor(Math.random()*(dictSize-wordLength));
-	if (caseSensitive) 
-	    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: caseSensitive }}});
-	else
-	    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: caseSensitive }}});
+	oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: caseSensitive }}});
     }
     return oplist;
 }

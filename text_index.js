@@ -76,15 +76,14 @@ function oplistSingleWord(caseSensitive) {
     for (var i=0; i<numQuery; i++) {
 	var c = Math.floor(Math.random()*(dictSize-wordLength));
 	if (caseSensitive) 
-	    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: true }}});
+	    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: caseSensitive }}});
 	else
-	    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: false }}});
+	    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: caseSensitive }}});
     }
     return oplist;
 }
 
-
-// Case-sensitive single-word search
+// Single-word search, case-insensitive
 tests.push( { name: "Text.FindSingle",
             tags: ['query','daily','weekly','monthly'],
             pre: function(collection) {
@@ -94,100 +93,79 @@ tests.push( { name: "Text.FindSingle",
 	    });
 
 // Single-word search, case-sensitive
-// Create an oplist and use it to create the test case
-oplist=[];
-for (var i=0; i<numQuery; i++) {
-    var c = Math.floor(Math.random()*(dictSize-wordLength));
-    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: true }}});
-}
-
 tests.push( { name: "Text.FindSingleCaseSensitive",
             tags: ['query','daily','weekly','monthly'],
             pre: function(collection) {
 	    populateCollection(collection, numTerm, dictSize);
 	},
-	    ops: oplist
+	    ops: oplistSingleWord(true)
 	    });
 
 
 
-// Three-word search (or)
-// Create an oplist and use it to create the test case
-oplist=[];
-for (var i=0; i<numQuery; i++) {
-    var p = "";
-    for (var j=0; j<3; j++) {
-        var c = Math.floor(Math.random()*(dictSize-wordLength));
-        p = p.concat(generatePhraseLowerCase(c,1), " ");
+// Helper function to create oplist for three-word search (or)
+function oplistThreeWord(caseSensitive) {
+    oplist=[];
+    for (var i=0; i<numQuery; i++) {
+	var p = "";
+	for (var j=0; j<3; j++) {
+	    var c = Math.floor(Math.random()*(dictSize-wordLength));
+	    p = p.concat(generatePhraseLowerCase(c,1), " ");
+	}
+	oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: caseSensitive }}});
     }
-    oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: false }}});
+    return oplist;
 }
 
+// Three-word search (or), case-insensitive
 tests.push( { name: "Text.FindThreeWords",
             tags: ['query','daily','weekly','monthly'],
             pre: function(collection) {
             populateCollection(collection, numTerm, dictSize);
         },
-            ops: oplist
+            ops: oplistThreeWord(false)
             });
 
 // Three-word search (or), case sensitive
-// Create an oplist and use it to create the test case
-oplist=[];
-for (var i=0; i<numQuery; i++) {
-    var p = "";
-    for (var j=0; j<3; j++) {
-        var c = Math.floor(Math.random()*(dictSize-wordLength));
-        p = p.concat(generatePhraseLowerCase(c,1), " ");
-    }
-    oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: true }}});
-}
-
-tests.push( { name: "Text.FindThreeWords",
+tests.push( { name: "Text.FindThreeWordsCaseSensiive",
             tags: ['query','daily','weekly','monthly'],
             pre: function(collection) {
             populateCollection(collection, numTerm, dictSize);
         },
-            ops: oplist
+            ops: oplistThreeWord(true)
             });
 
 
-// Three-word phrase search
-// Create an oplist and use it to create the test case
-// Be careful with the escape character "\"
-oplist=[];
-for (var i=0; i<numQuery; i++) {
-    var c = Math.floor(Math.random()*(dictSize-wordLength));
-    var p = "\"";
-    p = p.concat(generatePhraseLowerCase(c, numTerm), "\"");
-    oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: false }}});
+
+// Helper function to create oplist for three-word phrase search
+// Be VERY careful with the escape character "\"
+function oplistPhrase(caseSensitive) {
+    oplist=[];
+    for (var i=0; i<numQuery; i++) {
+	var c = Math.floor(Math.random()*(dictSize-wordLength));
+	var p = "\"";
+	p = p.concat(generatePhraseLowerCase(c, numTerm), "\"");
+	oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: caseSensitive }}});
+    }
+    return oplist;
 }
 
+// Phrase search, case-insensitive
 tests.push( { name: "Text.FindPhrase",
             tags: ['query','daily','weekly','monthly'],
             pre: function(collection) {
 	    populateCollection(collection, numTerm, dictSize);
         },
-	    ops: oplist
+	    ops: oplistPhrase(false)
 	    });
 
-// Three-word phrase search, case-sensitive
-// Create an oplist and use it to create the test case
-// Be careful with the escape character "\"
-oplist=[];
-for (var i=0; i<numQuery; i++) {
-    var c = Math.floor(Math.random()*(dictSize-wordLength));
-    var p = "\"";
-    p = p.concat(generatePhraseLowerCase(c, numTerm), "\"");
-    oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: true }}});
-}
-
+// Phrase search, case-sensitive
 tests.push( { name: "Text.FindPhraseCaseSensitive",
             tags: ['query','daily','weekly','monthly'],
             pre: function(collection) {
 	    populateCollection(collection, numTerm, dictSize);
         },
-	    ops: oplist
+	    ops: oplistPhrase(true)
 	    });
 
 

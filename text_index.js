@@ -3,26 +3,33 @@ if ( typeof(tests) != "object" ) {
 }
 
 // Global variables for the text index tests
-// dictSize: number of characters in the "dictionary", number of words is dictSize - wordLength
-//           we also use this as the number of documents in a collection but that can be changed
-// wordLength: length of the "words"; all words are the same length currently but it can be changed
+// dictSize: number of characters in the "dictionary", number of words is 
+//           dictSize - wordLength. we also use this as the number of 
+//           documents in a collection but that can be changed
+// wordLength: length of the "words"; all words are the same length 
+//             currently but it can be changed
 // wordDistance: distance between "words" in a multi-word phrase
-// A document is inserted into the database with a "phrase" that consists of numTerm "words" that
-// are wordDistance apart from each other in the dictionary. Each word is wordLength long. By doing
-// this, we can be sure that the "phrase queries" can have an exact match.
+//               A document is inserted into the database with a "phrase" 
+//               that consists of numTerm "words" that are wordDistance 
+//               apart from each other in the dictionary. Each word is 
+//               wordLength long. By doing this, we can be sure that the 
+//               "phrase queries" can have an exact match.
 var language = "english"; 
 const dictSize = 2400;      // total doc count is 4800 to match other mongo-perf tests
 const wordLength = 5;
 const wordDistance = 100;
 const numTerm = 5;
 
-// number of queries to use in query tests; idea is to spread the hits across the tree
+// number of queries to use in query tests; idea is to spread the hits 
+// across the tree
 const numQuery = 50;
 
 // ============
-// Some Helper functions that are used to create the dictionary and phrases of fake words for the text index
+// Some Helper functions that are used to create the dictionary and phrases
+// of fake words for the text index
 // ============
-// The dictionary is just a long random string. By picking fixed-sized substrings from it, we have our "words"
+// The dictionary is just a long random string. By picking fixed-sized 
+// substrings from it, we have our "words"
 var enPossible = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1";
 var possible = enPossible;
 
@@ -33,7 +40,8 @@ for (var i = 0; i<dictSize; i++)
 function generatePhrase(pos, term) {
     buf="";
     for (var i=0; i<term; i++) {
-        // Adding a stop word for every 3 fake words; can be modified to increase or lower the frequency                                                                    
+        // Adding a stop word for every 3 fake words; can be modified to 
+        // increase or lower the frequency                                                                    
         if ( i%3==1) {
             buf = buf.concat("the")
                 }
@@ -67,36 +75,37 @@ function populateCollection(col, term, entry) {
 
 
 // ============
-// Generate all queries with lower case words so we can exercise the caseSensitive switch
+// Generate all queries with lower case words so we can exercise the 
+// caseSensitive switch
 // ============
 
 // Helper function to create oplist for single-word search
 function oplistSingleWord(caseSensitive) {
     var oplist=[];
     for (var i=0; i<numQuery; i++) {
-	var c = Math.floor(Math.random()*(dictSize-wordLength));
-	oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: caseSensitive }}});
+    var c = Math.floor(Math.random()*(dictSize-wordLength));
+    oplist.push({op: "find", query: {$text: {$search: generatePhraseLowerCase(c,1), $caseSensitive: caseSensitive }}});
     }
     return oplist;
 }
 
 // Single-word search, case-insensitive
-tests.push( { name: "Text.FindSingle",
-            tags: ['query','daily','weekly','monthly'],
+tests.push( { name: "Queries.Text.FindSingle",
+            tags: ['query','text','daily','weekly','monthly'],
             pre: function(collection) {
-	    populateCollection(collection, numTerm, dictSize);
-	},
-	      ops: oplistSingleWord(false)
-	    });
+        populateCollection(collection, numTerm, dictSize);
+    },
+          ops: oplistSingleWord(false)
+        });
 
 // Single-word search, case-sensitive
-tests.push( { name: "Text.FindSingleCaseSensitive",
-            tags: ['query','daily','weekly','monthly'],
+tests.push( { name: "Queries.Text.FindSingleCaseSensitive",
+            tags: ['query','text','daily','weekly','monthly'],
             pre: function(collection) {
-	    populateCollection(collection, numTerm, dictSize);
-	},
-	    ops: oplistSingleWord(true)
-	    });
+        populateCollection(collection, numTerm, dictSize);
+    },
+        ops: oplistSingleWord(true)
+        });
 
 
 
@@ -104,19 +113,19 @@ tests.push( { name: "Text.FindSingleCaseSensitive",
 function oplistThreeWord(caseSensitive) {
     oplist=[];
     for (var i=0; i<numQuery; i++) {
-	var p = "";
-	for (var j=0; j<3; j++) {
-	    var c = Math.floor(Math.random()*(dictSize-wordLength));
-	    p = p.concat(generatePhraseLowerCase(c,1), " ");
-	}
-	oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: caseSensitive }}});
+    var p = "";
+    for (var j=0; j<3; j++) {
+        var c = Math.floor(Math.random()*(dictSize-wordLength));
+        p = p.concat(generatePhraseLowerCase(c,1), " ");
+    }
+    oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: caseSensitive }}});
     }
     return oplist;
 }
 
 // Three-word search (or), case-insensitive
-tests.push( { name: "Text.FindThreeWords",
-            tags: ['query','daily','weekly','monthly'],
+tests.push( { name: "Queries.Text.FindThreeWords",
+            tags: ['query','text','daily','weekly','monthly'],
             pre: function(collection) {
             populateCollection(collection, numTerm, dictSize);
         },
@@ -124,8 +133,8 @@ tests.push( { name: "Text.FindThreeWords",
             });
 
 // Three-word search (or), case sensitive
-tests.push( { name: "Text.FindThreeWordsCaseSensiive",
-            tags: ['query','daily','weekly','monthly'],
+tests.push( { name: "Queries.Text.FindThreeWordsCaseSensiive",
+            tags: ['query','text','daily','weekly','monthly'],
             pre: function(collection) {
             populateCollection(collection, numTerm, dictSize);
         },
@@ -139,30 +148,30 @@ tests.push( { name: "Text.FindThreeWordsCaseSensiive",
 function oplistPhrase(caseSensitive) {
     oplist=[];
     for (var i=0; i<numQuery; i++) {
-	var c = Math.floor(Math.random()*(dictSize-wordLength));
-	var p = "\"";
-	p = p.concat(generatePhraseLowerCase(c, numTerm), "\"");
-	oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: caseSensitive }}});
+    var c = Math.floor(Math.random()*(dictSize-wordLength));
+    var p = "\"";
+    p = p.concat(generatePhraseLowerCase(c, numTerm), "\"");
+    oplist.push({op: "find", query: {$text: {$search: p, $caseSensitive: caseSensitive }}});
     }
     return oplist;
 }
 
 // Phrase search, case-insensitive
-tests.push( { name: "Text.FindPhrase",
-            tags: ['query','daily','weekly','monthly'],
+tests.push( { name: "Queries.Text.FindPhrase",
+            tags: ['query','text','daily','weekly','monthly'],
             pre: function(collection) {
-	    populateCollection(collection, numTerm, dictSize);
+        populateCollection(collection, numTerm, dictSize);
         },
-	    ops: oplistPhrase(false)
-	    });
+        ops: oplistPhrase(false)
+        });
 
 // Phrase search, case-sensitive
-tests.push( { name: "Text.FindPhraseCaseSensitive",
-            tags: ['query','daily','weekly','monthly'],
+tests.push( { name: "Queries.Text.FindPhraseCaseSensitive",
+            tags: ['query','text','daily','weekly','monthly'],
             pre: function(collection) {
-	    populateCollection(collection, numTerm, dictSize);
+        populateCollection(collection, numTerm, dictSize);
         },
-	    ops: oplistPhrase(true)
-	    });
+        ops: oplistPhrase(true)
+        });
 
 

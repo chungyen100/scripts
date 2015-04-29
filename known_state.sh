@@ -2,8 +2,6 @@
 # braindead script to kick off mongod for testing cap-1442
 
 # get to a known state
-# Kill existing mongod
-killall mongod
 # clear cache
 sudo bash -c "echo 3 > /proc/sys/vm/drop_caches"
 #disable transparent huge pages

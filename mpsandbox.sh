@@ -16,8 +16,8 @@ while [ $i -lt 1 ]; do
 	for f in $( ls testcases/*.js ); do
 	    fname=${f%.js}
 		fname=${fname##*/}
-		echo "(time numactl --interleave=all python ~/mongo-perf/benchrun.py -f $f --writeCmd true --nodyno --mongo-repo-path ~/mongo/bin/mongo-master -s ~/mongo/bin/mongo -t 1 4 8 16 32 64 96 --trialCount 7 --testFilter "['sanity','daily']") 2>&1 | tee -a $ofile" | tee -a $ofile
-		(time numactl --interleave=all python ~/mongo-perf/benchrun.py -f $f --writeCmd true --nodyno --mongo-repo-path ~/mongo/bin/mongo-master -s ~/mongo/bin/mongo -t 1 4 8 16 32 64 96 --trialCount 7 --testFilter "['sanity','daily']") 2>&1 | tee -a $ofile | tee -a $ofile
+		echo "(time numactl --interleave=all stdbuf -o L python ~/mongo-perf/benchrun.py -f $f --writeCmd true --nodyno --mongo-repo-path ~/mongo/bin/mongo-master -s ~/mongo/bin/mongo -t 1 4 8 16 32 64 96 --trialCount 7 --testFilter "['sanity','daily']") 2>&1 | tee -a $ofile" | tee -a $ofile
+		(time numactl --interleave=all stdbuf -o L python ~/mongo-perf/benchrun.py -f $f --writeCmd true --nodyno --mongo-repo-path ~/mongo/bin/mongo-master -s ~/mongo/bin/mongo -t 1 4 8 16 32 64 96 --trialCount 7 --testFilter "['sanity','daily']") 2>&1 | tee -a $ofile | tee -a $ofile
 		printf "\n\n\n\n" | tee -a $ofile 
 	done
 
@@ -34,8 +34,8 @@ while [ $i -lt 1 ]; do
 	for f in $( ls testcases/*.js ); do
 	    fname=${f%.js}
 		fname=${fname##*/}
-		echo "(time numactl --interleave=all python ~/mongo-perf/benchrun.py -f $f --writeCmd true --nodyno --mongo-repo-path ~/mongo/bin/mongo-master -s ~/mongo/bin/mongo -t 1 4 8 16 32 64 96 --trialCount 7 --testFilter "['sanity','daily']") 2>&1 | tee -a $ofile" | tee -a $ofile
-		(time numactl --interleave=all python ~/mongo-perf/benchrun.py -f $f --writeCmd true --nodyno --mongo-repo-path ~/mongo/bin/mongo-master -s ~/mongo/bin/mongo -t 1 4 8 16 32 64 96 --trialCount 7 --testFilter "['sanity','daily']") 2>&1 | tee -a $ofile | tee -a $ofile
+		echo "(time numactl --interleave=all stdbuf -o L python ~/mongo-perf/benchrun.py -f $f --writeCmd true --nodyno --mongo-repo-path ~/mongo/bin/mongo-master -s ~/mongo/bin/mongo -t 1 4 8 16 32 64 96 --trialCount 7 --testFilter "['sanity','daily']") 2>&1 | tee -a $ofile" | tee -a $ofile
+		(time numactl --interleave=all stdbuf -o L python ~/mongo-perf/benchrun.py -f $f --writeCmd true --nodyno --mongo-repo-path ~/mongo/bin/mongo-master -s ~/mongo/bin/mongo -t 1 4 8 16 32 64 96 --trialCount 7 --testFilter "['sanity','daily']") 2>&1 | tee -a $ofile | tee -a $ofile
 		printf "\n\n\n\n" | tee -a $ofile 
 	done
 	i=$(($i+1))

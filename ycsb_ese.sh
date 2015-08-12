@@ -16,7 +16,7 @@ while [ $i -lt 1 ]; do
     wait
     (stdbuf -o L ~/YCSB/ycsb-mongodb/bin/ycsb run mongodb -s -P ~/YCSB/ycsb-mongodb/workloads/workload_ese -threads 16 2>&1 | tee ese_run.txt) &
     sleep 30
-    ~/scripts/monstat.sh ese_run 1 300
+    ~/scripts/monstat.sh ese_run 1 600
     wait
 
     # Now do the baseline 
@@ -33,7 +33,7 @@ while [ $i -lt 1 ]; do
     wait 
     (stdbuf -o L ~/YCSB/ycsb-mongodb/bin/ycsb run mongodb -s -P ~/YCSB/ycsb-mongodb/workloads/workload_ese -threads 16 2>&1 | tee base_run.txt) &
     sleep 30 
-    ~/scripts/monstat.sh base_run 1 300
+    ~/scripts/monstat.sh base_run 1 600
     wait
     
     i=$(($i+1))
